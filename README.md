@@ -1,5 +1,6 @@
 # assign3-addition-api
 Clone this repository
+
 Create a branch
 
 Requirements:
@@ -13,6 +14,9 @@ Requirements:
 - Remove all other endpoints and unused classes in the project
 
 Commit
+
 Push your branch
+
 Create a pull request <your branch> => <main>
+
 Done!
