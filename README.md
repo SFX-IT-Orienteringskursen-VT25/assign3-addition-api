@@ -17,6 +17,6 @@ Commit
 
 Push your branch
 
-Create a pull request <your branch> => <main>
+Create a pull request `<your branch> => <main>`
 
 Done!
