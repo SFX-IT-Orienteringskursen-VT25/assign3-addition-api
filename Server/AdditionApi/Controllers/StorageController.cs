@@ -7,13 +7,15 @@ namespace AdditionApi.Controllers
     [Route("storage")]
     public class StorageController : ControllerBase
     {
-        // 模拟 "localStorage" 的内存数据库
         private static ConcurrentDictionary<string, string> _storage = new();
 
         // POST /storage
         [HttpPost]
         public IActionResult SetItem([FromBody] StorageItem item)
         {
+            if (string.IsNullOrWhiteSpace(item.Key) || item.Value == null)
+                return BadRequest(new { message = "Key and Value are required." });
+
             _storage[item.Key] = item.Value;
             return Created($"/storage/{item.Key}", null);
         }
@@ -23,14 +25,12 @@ namespace AdditionApi.Controllers
         public IActionResult GetItem(string key)
         {
             if (_storage.TryGetValue(key, out var value))
-            {
                 return Ok(new { key, value });
-            }
+
             return NotFound();
         }
     }
 
-    // 请求体的数据结构
     public class StorageItem
     {
         public string Key { get; set; }
