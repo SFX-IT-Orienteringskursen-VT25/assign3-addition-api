@@ -1,4 +1,3 @@
-using AdditionApi;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,39 +16,37 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Enable static file serving (from wwwroot)
+app.UseStaticFiles();
 
 
-app.MapGet("/", () =>
+// Simulate in-memory persistent storage
+List<int> storedNumbers = new();
+
+// Serve the HTML file at root
+app.MapGet("/", async context =>
 {
-    return "Hello World!";
+    context.Response.ContentType = "text/html";
+    await context.Response.SendFileAsync("wwwroot/Persisted-addition.html");
 });
 
-app.MapGet("/weatherforecast", () =>
+// GET: Retrieve stored numbers
+app.MapGet("/api/numbers", () =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
+    return Results.Ok(storedNumbers);
 });
 
-app.MapPost("/order", ([FromBody] Order order) =>
+// POST: Overwrite stored numbers
+app.MapPost("/api/numbers", async (HttpContext context) =>
 {
-    if (order.Item == null)
-    {
-        return Results.BadRequest("Must provide an item");
-    }
+    var numbers = await context.Request.ReadFromJsonAsync<List<int>>();
+    if (numbers == null)
+        return Results.BadRequest("Invalid JSON array");
 
-    return Results.Ok("Order received");
+    storedNumbers = numbers;
+    return Results.NoContent();
 });
-app.MapPut("/order", ([FromBody] Order order) =>
-{
-    return Results.Ok("Order has been updated");
-});
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
+
+
 
 app.Run();
