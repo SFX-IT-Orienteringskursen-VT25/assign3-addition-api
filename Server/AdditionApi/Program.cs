@@ -1,55 +1,34 @@
-using AdditionApi;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Concurrent;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// 用于存储 key-value 对象，线程安全
+var storage = new ConcurrentDictionary<string, string>();
+
+// POST /storage - 模拟 localStorage.setItem(key, value)
+app.MapPost("/storage", ([FromBody] KeyValuePair<string, string> data) =>
 {
-    app.MapOpenApi();
-}
-
-app.UseHttpsRedirection();
-
-
-
-app.MapGet("/", () =>
-{
-    return "Hello World!";
-});
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
-});
-
-app.MapPost("/order", ([FromBody] Order order) =>
-{
-    if (order.Item == null)
+    if (string.IsNullOrWhiteSpace(data.Key))
     {
-        return Results.BadRequest("Must provide an item");
+        return Results.BadRequest("Key is required.");
     }
 
-    return Results.Ok("Order received");
+    storage[data.Key] = data.Value ?? "";
+    return Results.Created($"/storage/{data.Key}", new { message = "Item stored" });
 });
-app.MapPut("/order", ([FromBody] Order order) =>
+
+// GET /storage/{key} - 模拟 localStorage.getItem(key)
+app.MapGet("/storage/{key}", ([FromRoute] string key) =>
 {
-    return Results.Ok("Order has been updated");
+    if (storage.TryGetValue(key, out var value))
+    {
+        return Results.Ok(new { key, value });
+    }
+
+    return Results.NotFound(new { message = "Key not found" });
 });
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
 app.Run();
