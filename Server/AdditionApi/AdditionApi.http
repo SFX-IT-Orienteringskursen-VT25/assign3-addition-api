@@ -1,6 +1,13 @@
 @AdditionApi_HostAddress = http://localhost:5262
-
-GET {{AdditionApi_HostAddress}}/weatherforecast/
+GET {{AdditionApi_HostAddress}}/orders/username
 Accept: application/json
 
-###
+
+### Set an item (simulate localStorage.setItem)
+POST {{AdditionApi_HostAddress}}/orders
+Content-Type: application/json
+
+{
+  "key": "username",
+  "value": "hej"
+}
