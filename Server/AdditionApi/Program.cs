@@ -1,5 +1,6 @@
-using AdditionApi;
+
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Concurrent;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,39 +18,23 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// In-memory storage
+var localStore = new ConcurrentDictionary<string, string>();
 
-
-app.MapGet("/", () =>
+app.MapGet("/orders/{key}", (string key) =>
 {
-    return "Hello World!";
-});
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
-});
-
-app.MapPost("/order", ([FromBody] Order order) =>
-{
-    if (order.Item == null)
+    if (localStore.TryGetValue(key, out var value))
     {
-        return Results.BadRequest("Must provide an item");
+        return Results.Ok(value);
     }
+    return Results.NotFound();
+});
 
-    return Results.Ok("Order received");
-});
-app.MapPut("/order", ([FromBody] Order order) =>
+
+app.MapPost("/orders", ([FromBody] KeyValuePair<string, string> item) =>
 {
-    return Results.Ok("Order has been updated");
+    localStore[item.Key] = item.Value;
+    return Results.Created($"/orders/{item.Key}", item);
 });
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
 app.Run();
