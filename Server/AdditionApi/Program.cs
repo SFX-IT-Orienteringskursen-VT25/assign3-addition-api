@@ -37,6 +37,16 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
+app.MapPost("/addNumber", () =>
+{
+    Console.WriteLine("Lets assume that some os the numbers was added somewere");
+});
+
+app.MapGet("/getNumber", () =>
+{
+    Console.WriteLine("Show constant mapped number, for example 33!");
+});
+
 app.MapPost("/order", ([FromBody] Order order) =>
 {
     if (order.Item == null)
