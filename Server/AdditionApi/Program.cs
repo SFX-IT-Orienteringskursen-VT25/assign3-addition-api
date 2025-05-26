@@ -37,14 +37,21 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
-app.MapPost("/addNumber", () =>
+app.MapPost("/addNumber", (InputNumber data) =>
 {
-    Console.WriteLine("Lets assume that some os the numbers was added somewere");
+    Console.WriteLine($"Number received: {data.Value}");
+
+    return Results.Ok(new
+    {
+        Message = $"Number {data.Value} was successfully added."
+    });
 });
 
 app.MapGet("/getNumber", () =>
 {
-    Console.WriteLine("Show constant mapped number, for example 33!");
+    int[] numbers = { 10, 20, 30 };
+    Console.WriteLine("Returning multiple numbers");
+    return Results.Ok(numbers);
 });
 
 app.MapPost("/order", ([FromBody] Order order) =>
