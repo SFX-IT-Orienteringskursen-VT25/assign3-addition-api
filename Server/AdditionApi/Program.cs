@@ -19,37 +19,28 @@ app.UseHttpsRedirection();
 
 
 
-app.MapGet("/", () =>
-{
-    return "Hello World!";
-});
+var storedNumbers = new List<int>();
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/api/numbers", () =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
-});
-
-app.MapPost("/order", ([FromBody] Order order) =>
-{
-    if (order.Item == null)
+    var result = new
     {
-        return Results.BadRequest("Must provide an item");
-    }
+        numbers = storedNumbers,
+        sum = storedNumbers.Sum()
+    };
+    return Results.Ok(result); // 200 OK with data
+});
 
-    return Results.Ok("Order received");
-});
-app.MapPut("/order", ([FromBody] Order order) =>
+app.MapPost("/api/numbers", ([FromBody] int number) =>
 {
-    return Results.Ok("Order has been updated");
+    storedNumbers.Add(number);
+    var result = new
+    {
+        numbers = storedNumbers,
+        sum = storedNumbers.Sum()
+    };
+    return Results.Created("/api/numbers", result); // 201 Created
 });
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
+
 
 app.Run();
