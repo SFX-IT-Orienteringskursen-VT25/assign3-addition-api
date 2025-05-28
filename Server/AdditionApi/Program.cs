@@ -1,5 +1,4 @@
-using AdditionApi;
-using Microsoft.AspNetCore.Mvc;
+using System.Collections.Concurrent;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +8,8 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+var store = new ConcurrentDictionary<string, string>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -17,39 +18,32 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
-
+// Get / - Default route
 app.MapGet("/", () =>
 {
-    return "Hello World!";
+    return "assign3-addition-api";
 });
 
-app.MapGet("/weatherforecast", () =>
+// POST /api/storage - equivalent to localStorage.setItem
+app.MapPost("/api/storage", (KeyValue item) =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
+    if (string.IsNullOrWhiteSpace(item.Key))
+        return Results.BadRequest("Key is required.");
+
+    store[item.Key] = item.Value;
+    return Results.StatusCode(201); // Created
 });
 
-app.MapPost("/order", ([FromBody] Order order) =>
+// GET /api/storage/{key} - equivalent to localStorage.getItem
+app.MapGet("/api/storage/{key}", (string key) =>
 {
-    if (order.Item == null)
-    {
-        return Results.BadRequest("Must provide an item");
-    }
-
-    return Results.Ok("Order received");
+    return store.TryGetValue(key, out var value)
+        ? Results.Ok(new { key, value })
+        : Results.NotFound();
 });
-app.MapPut("/order", ([FromBody] Order order) =>
-{
-    return Results.Ok("Order has been updated");
-});
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
+// run the app
 app.Run();
+
+// Record type for input model
+record KeyValue(string Key, string Value);
