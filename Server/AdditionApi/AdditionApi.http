@@ -1,6 +1,14 @@
-@AdditionApi_HostAddress = http://localhost:5262
+@host = http://localhost:5262
 
-GET {{AdditionApi_HostAddress}}/weatherforecast/
+### Save item (setItem)
+POST {{host}}/storage
+Content-Type: application/json
+
+{
+  "key": "username",
+  "value": "Morihei Ueshiba"
+}
+
+### Get item (getItem)
+GET {{host}}/storage/username
 Accept: application/json
-
-###
