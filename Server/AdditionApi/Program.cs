@@ -1,55 +1,60 @@
-using AdditionApi;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Concurrent;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
 
 app.UseHttpsRedirection();
 
+// File path for persistent storage
+var storageFile = "storage.json";
 
-
-app.MapGet("/", () =>
+// Load storage from file if it exists
+ConcurrentDictionary<string, string> storage;
+if (File.Exists(storageFile))
 {
-    return "Hello World!";
-});
-
-app.MapGet("/weatherforecast", () =>
+    var json = File.ReadAllText(storageFile);
+    var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
+    storage = new ConcurrentDictionary<string, string>(dict);
+}
+else
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
-});
+    storage = new ConcurrentDictionary<string, string>();
+}
 
-app.MapPost("/order", ([FromBody] Order order) =>
+void SaveStorage()
 {
-    if (order.Item == null)
+    var json = JsonSerializer.Serialize(storage);
+    File.WriteAllText(storageFile, json);
+}
+
+// POST /storage/{key} - setItem
+app.MapPost("/storage/{key}", ([FromRoute] string key, [FromBody] ValueDto dto) =>
+{
+    if (dto == null || dto.Value == null)
     {
-        return Results.BadRequest("Must provide an item");
+        return Results.BadRequest(new { error = "Value is required" });
     }
+    storage[key] = dto.Value;
+    SaveStorage();
+    return Results.StatusCode(201);
+});
 
-    return Results.Ok("Order received");
-});
-app.MapPut("/order", ([FromBody] Order order) =>
+// GET /storage/{key} - getItem
+app.MapGet("/storage/{key}", ([FromRoute] string key) =>
 {
-    return Results.Ok("Order has been updated");
+    if (storage.TryGetValue(key, out var value))
+    {
+        return Results.Ok(new { value });
+    }
+    return Results.NotFound(new { error = "Key not found" });
 });
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
 app.Run();
+
+public class ValueDto
+{
+    public string? Value { get; set; }
+}
