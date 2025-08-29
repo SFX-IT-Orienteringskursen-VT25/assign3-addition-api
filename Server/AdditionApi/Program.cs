@@ -1,5 +1,4 @@
 using AdditionApi;
-using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,7 +36,7 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
-app.MapPost("/order", ([FromBody] Order order) =>
+app.MapPost("/order", (Order order) =>
 {
     if (order.Item == null)
     {
@@ -46,10 +45,10 @@ app.MapPost("/order", ([FromBody] Order order) =>
 
     return Results.Ok("Order received");
 });
-app.MapPut("/order", ([FromBody] Order order) =>
+app.MapPut("/order", (Order order) =>
 {
     return Results.Ok("Order has been updated");
 });
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
+app.MapDelete("/order", (Order order) => Results.NoContent());
 
 app.Run();
