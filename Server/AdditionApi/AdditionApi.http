@@ -1,6 +1,15 @@
-@AdditionApi_HostAddress = http://localhost:5262
+@BASE_URL = http://localhost:5270
 
-GET {{AdditionApi_HostAddress}}/weatherforecast/
-Accept: application/json
+### Get data
+GET {{BASE_URL}}/api/storage/phone
+Content-Type: application/json
 
-###
+
+### Save data
+POST {{BASE_URL}}/api/storage
+Content-Type: application/json
+
+{
+  "key": "phone",
+  "value": "+98745646"
+}
