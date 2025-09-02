@@ -1,15 +1,17 @@
 @BASE_URL = http://localhost:5270
 
-### Get data
-GET {{BASE_URL}}/api/storage/phone
-Content-Type: application/json
-
-
 ### Save data
 POST {{BASE_URL}}/api/storage
 Content-Type: application/json
 
 {
-  "key": "phone",
-  "value": "+98745646"
+  "key": "user",
+  "value": "Safirjm"
 }
+
+### Get data
+GET {{BASE_URL}}/api/storage/user
+Content-Type: application/json
+
+
+
