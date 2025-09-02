@@ -23,7 +23,7 @@ public class StorageController : ControllerBase
     {
         if (_store.TryGetValue(key, out var value))
         {
-            return Ok(new { key, value });
+            return Ok(new StorageItem { Key = key, Value = value });
         }
 
         return NotFound(new { message = "Key not found" });
