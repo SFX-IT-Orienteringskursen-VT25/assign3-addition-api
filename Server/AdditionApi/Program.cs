@@ -1,55 +1,36 @@
-using AdditionApi;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
+// Add services to the container - simplified for .NET 7.0
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
+// Configure the HTTP request pipeline
 app.UseHttpsRedirection();
 
-
+// Simple in-memory storage for the numbers array
+var numbersStorage = new List<int>();
 
 app.MapGet("/", () =>
 {
     return "Hello World!";
 });
 
-app.MapGet("/weatherforecast", () =>
+// GET endpoint - replaces localStorage.getItem('enteredNumbers')
+app.MapGet("/storage/enteredNumbers", () =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
+    return Results.Ok(new { numbers = numbersStorage });
 });
 
-app.MapPost("/order", ([FromBody] Order order) =>
+// PUT endpoint - replaces localStorage.setItem('enteredNumbers', JSON.stringify(numbers))
+app.MapPut("/storage/enteredNumbers", ([FromBody] NumbersRequest request) =>
 {
-    if (order.Item == null)
-    {
-        return Results.BadRequest("Must provide an item");
-    }
-
-    return Results.Ok("Order received");
+    numbersStorage.Clear();
+    numbersStorage.AddRange(request.Numbers);
+    return Results.Ok(new { numbers = numbersStorage });
 });
-app.MapPut("/order", ([FromBody] Order order) =>
-{
-    return Results.Ok("Order has been updated");
-});
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
 app.Run();
+
+// Record for the numbers request
+public record NumbersRequest(int[] Numbers);

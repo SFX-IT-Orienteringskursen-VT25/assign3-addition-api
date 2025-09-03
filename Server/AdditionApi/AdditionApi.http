@@ -1,6 +1,12 @@
 @AdditionApi_HostAddress = http://localhost:5262
 
-GET {{AdditionApi_HostAddress}}/weatherforecast/
-Accept: application/json
+### Test storage endpoints
+GET {{AdditionApi_HostAddress}}/storage/enteredNumbers
 
 ###
+PUT {{AdditionApi_HostAddress}}/storage/enteredNumbers
+Content-Type: application/json
+
+{
+  "numbers": [1, 2, 3]
+}
