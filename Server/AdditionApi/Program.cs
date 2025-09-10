@@ -1,13 +1,17 @@
-using AdditionApi;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Builder;
+using System.Collections.Concurrent;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 
+
+
+builder.Services.AddControllers();
+builder.Services.AddOpenApi();
 var app = builder.Build();
+
+ConcurrentDictionary<string, string> items = new ConcurrentDictionary<string, string>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -16,40 +20,57 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-
+app.UseAuthorization();
+app.MapControllers();
 
 app.MapGet("/", () =>
 {
     return "Hello World!";
 });
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/getItems", () =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
+    // Sort with numeric ordering for keys that are numbers
+    var sortedItems = items
+        .OrderBy(e => 
+        {
+            
+            if (int.TryParse(e.Key, out int intValue))
+                return intValue;
+            
+            
+            if (double.TryParse(e.Key, out double doubleValue))
+                return (int)doubleValue; 
+            
+            
+            return int.MaxValue;
+        })
+        .ThenBy(e => e.Key) // Secondary alphabetical sort for non-numeric keys
+        .ToDictionary(e => e.Key, e => e.Value);
+
+    return Results.Ok(sortedItems);
 });
 
-app.MapPost("/order", ([FromBody] Order order) =>
+app.MapPost("/addItems", (Item[] itemsArray) =>
 {
-    if (order.Item == null)
+    var results = new List<Item>();
+    foreach (var item in itemsArray)
     {
-        return Results.BadRequest("Must provide an item");
+        if (string.IsNullOrEmpty(item.Id) || item.Value == null)
+        {
+            return Results.BadRequest($"Invalid item: Id and Value are required for all items");
+        }
+        
+        items[item.Id] = item.Value;
+        results.Add(item);
     }
-
-    return Results.Ok("Order received");
+    return Results.Created($"/getItems", results);
 });
-app.MapPut("/order", ([FromBody] Order order) =>
-{
-    return Results.Ok("Order has been updated");
-});
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
 app.Run();
+
+public class Item
+{
+    public string Id { get; set; } =string.Empty;
+    public string Value { get; set; } = string.Empty;
+}

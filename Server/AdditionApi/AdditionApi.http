@@ -1,6 +1,52 @@
-@AdditionApi_HostAddress = http://localhost:5262
-
-GET {{AdditionApi_HostAddress}}/weatherforecast/
-Accept: application/json
+@root_URL = http://localhost:5262
 
 ###
+POST {{root_URL}}/addItems
+Content-Type: application/json
+
+[
+    {
+        "Id": "3",
+        "value": "apple"
+    },
+    {
+        "Id": "4",
+        "value": "banana"
+    },
+    {
+        "Id": "5",
+        "value": "cherry"
+    },
+    {
+        "Id": "6",
+        "value": "42"
+    },
+    {
+        "Id": "5",
+        "value": "3.14"
+    },
+    {
+        "Id": "6",
+        "value": "true"
+    },
+    {
+        "Id": "7",
+        "value": "orange"
+    },
+    {
+        "Id": "8",
+        "value": "100"
+    },
+    {
+        "Id": "9",
+        "value": "false"
+    },
+    {
+        "Id": "10",
+        "value": "grape"
+    }
+]
+
+###
+GET {{root_URL}}/getItems
+Accept: application/json
