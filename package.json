@@ -1,0 +1,30 @@
+{
+  "name": "sfx-o-assign2-persisted-addition",
+   "version": "1.0.0",
+  "description": "Addition service with API endpoints",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles --forceExit"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jest-html-reporter": "^4.1.0",
+    "supertest": "^6.3.3"
+  },
+  "jest": {
+    "reporters": [
+      "default",
+      ["jest-html-reporter", {
+        "pageTitle": "Test Report"
+      }]
+    ]
+  }
+}
