@@ -1,4 +1,8 @@
 # assign3-addition-api
+The assignment was introduced in Class #7. In the link you can find the slides from the presentation as well as a recording of the class.
+https://classroom.google.com/c/MjI5OTg3MzMwODFa/p/MjE1MTI3MzM0MzNa/details
+
+## Instructions
 Clone this repository
 
 Create a branch
