@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Persisted Addition - API Version</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    .container {
+      text-align: center;
+    }
+    input {
+      padding: 10px;
+      margin: 10px;
+      font-size: 16px;
+      width: 200px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007cba;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005a87;
+    }
+    #sumDisplay {
+      font-size: 24px;
+      margin: 20px 0;
+      color: #333;
+    }
+    #history {
+      list-style: none;
+      padding: 0;
+    }
+    #history li {
+      background-color: #f0f0f0;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 3px;
+    }
+    .loading {
+      color: #666;
+      font-style: italic;
+    }
+    .error {
+      color: #cc071e;
+      background-color: #fbdfe0;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Persisted Addition - API Version</h1>
+    <div>
+      <input type="number" id="num1" placeholder="Enter a number" />
+      <button id="addButton">Add</button>
+    </div>
+    <div id="sumDisplay" class="loading">Loading...</div>
+    <div id="errorDisplay"></div>
+    <ul id="history"></ul>
+  </div>
+
+  <script type="module">
+    import { AdditionService } from './additionService.js';
+
+    const service = new AdditionService();
+    const input = document.getElementById('num1');
+    const button = document.getElementById('addButton');
+    const sumDisplay = document.getElementById('sumDisplay');
+    const historyList = document.getElementById('history');
+    const errorDisplay = document.getElementById('errorDisplay');
+
+    function showError(message) {
+      errorDisplay.innerHTML = `<div class="error">${message}</div>`;
+      setTimeout(() => {
+        errorDisplay.innerHTML = '';
+      }, 5000);
+    }
+
+    async function render() {
+      try {
+        const sum = await service.getSum();
+        const history = await service.getHistory();
+        
+        sumDisplay.textContent = 'Sum: ' + sum;
+        historyList.innerHTML = '';
+        
+        history.forEach((num) => {
+          const li = document.createElement('li');
+          li.textContent = num;
+          historyList.appendChild(li);
+        });
+      } catch (error) {
+        console.error('Render error:', error);
+        showError('Failed to load data: ' + error.message);
+      }
+    }
+
+    button.addEventListener('click', async () => {
+      const value = parseInt(input.value, 10);
+      if (!isNaN(value)) {
+        try {
+          button.disabled = true;
+          button.textContent = 'Adding...';
+          
+          await service.add(value);
+          await render();
+          input.value = '';
+        } catch (error) {
+          console.error('Add error:', error);
+          showError('Failed to add number: ' + error.message);
+        } finally {
+          button.disabled = false;
+          button.textContent = 'Add';
+        }
+      } else {
+        showError('Please enter a valid number');
+      }
+    });
+
+    // Allow Enter key to add number
+    input.addEventListener('keypress', (event) => {
+      if (event.key === 'Enter') {
+        button.click();
+      }
+    });
+
+    // Initialize the app
+    render();
+  </script>
+</body>
+</html>
