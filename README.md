@@ -1,26 +1,29 @@
-# assign3-addition-api
-The assignment was introduced in Class #7. In the link you can find the slides from the presentation as well as a recording of the class.
-https://classroom.google.com/c/MjI5OTg3MzMwODFa/p/MjE1MTI3MzM0MzNa/details
+# sfx-o-assign2-persisted-addition
+Clone this repository
+Create a branch
 
-## Instructions
+New requirements that need to be met:
+- The user inserted numbers need to be persisted
+- The function that handles read/writing the persisted numbers should also contain the summarizing logic
+- The function above should be unit tested
+
+Commit
+Push your branch
+Create a pull request <your branch> => <main>
+Done!# sfx-o-assign2-persisted-addition
 Clone this repository
 
 Create a branch
 
-Requirements:
-- Create two endpoints that are suitable to replace localStorage in the previous assignment (persisted-addition)
-  - one for localStorage.setItem and another for localStorage.getItem
-  - For each case, consider
-    - which url route you should use
-    - which HTTP Method you should use
-    - which HTTP response code you should use
-    - should the endpoint return any data or object?
-- Remove all other endpoints and unused classes in the project
+New requirements that need to be met:
+- The user inserted numbers need to be persisted
+- The function that handles read/writing the persisted numbers should also contain the summarizing logic
+- The function above should be unit tested
 
 Commit
 
 Push your branch
 
-Create a pull request `<your branch> => <main>`
+Create a pull request \<your branch\> => \<main\>
 
 Done!
