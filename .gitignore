@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Data files (generated at runtime)
+data/
+
+# Test reports (generated)
+test-report.html
+
+# Log files
+*.log
+npm-debug.log*
+
+# Environment variables (may contain secrets)
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.vscode/
+.idea/
