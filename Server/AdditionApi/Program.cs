@@ -37,24 +37,7 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 });
 
-/*
- //app.MapPost("/order", ([FromBody] Order order) =>
- {
-    if (order.Item == null)
-    {
-        return Results.BadRequest("Must provide an item");
-    }
 
-    return Results.Ok("Order received");
- });
- //app.MapPut("/order", ([FromBody] Order order) =>
- {
-    return Results.Ok("Order has been updated");
- });
- //app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
-
- //app.Run();
-*/
 
 // create two endpoints that are suitable for replacing localStorage. one for localStorage.setItem and another for localStorage.getItem
 app.MapPost("/localStorage/setItem", ([FromBody] LocalStorageItem item) =>
