@@ -63,7 +63,5 @@ app.MapPost("/localStorage/setItem", ([FromBody] LocalStorageItem item) =>
 });
 app.MapGet("/localStorage/getItem", ([FromQuery] LocalStorageItem item) =>
 {
-    // In a real application, you would retrieve this item from a database or in-memory store
-    // For this example, we'll just return a dummy item
     return Results.Ok("Item retrieved");
 });
