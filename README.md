@@ -1,26 +1,84 @@
 # assign3-addition-api
-The assignment was introduced in Class #7. In the link you can find the slides from the presentation as well as a recording of the class.
-https://classroom.google.com/c/MjI5OTg3MzMwODFa/p/MjE1MTI3MzM0MzNa/details
 
-## Instructions
-Clone this repository
+Work:
+- Created a endpoint `/storage/:key`, user can provide a key as url param and values in body as a json payload
 
-Create a branch
+`http://localhost:3000/storage/enteredNumbers`
 
-Requirements:
-- Create two endpoints that are suitable to replace localStorage in the previous assignment (persisted-addition)
-  - one for localStorage.setItem and another for localStorage.getItem
-  - For each case, consider
-    - which url route you should use
-    - which HTTP Method you should use
-    - which HTTP response code you should use
-    - should the endpoint return any data or object?
-- Remove all other endpoints and unused classes in the project
+```
+{
+  "value":["10",23]
+}
+```
 
-Commit
+- `POST` method will create a new key if the key is not exisit, or append the provided values if the key exisit, converted to number. response will provide the values, sum of the values and appended values from the request.
 
-Push your branch
+- status code `201` used if created and `200` is successful 
 
-Create a pull request `<your branch> => <main>`
+```
+{
+    "key": "enteredNumbers",
+    "values": [
+        35,
+        10,
+        23
+    ],
+    "sum": 68,
+    "appended": [
+        10,
+        23
+    ]
+}
+```
 
-Done!
+- `GET` method will provide the values and sum of the values of the provided key
+- status code `200` if key found and `404` used if key is not found
+
+```
+{
+    "key": "enteredNumbers",
+    "values": [
+        35,
+        10,
+        23
+    ],
+    "sum": 68
+}
+```
+```
+{
+    "error": "Not found",
+    "key": "enteredNumbers_3"
+}
+```
+
+- another `GET` endpoint `/storage` created which gives all the stored keys, and count of how many keys stored.
+
+```
+{
+    "count": 2,
+    "data": {
+        "enteredNumbers": {
+            "values": [
+                35,
+                10,
+                23
+            ],
+            "sum": 68
+        },
+        "enteredNumbers_2": {
+            "values": [
+                1,
+                2,
+                4,
+                10,
+                -3
+            ],
+            "sum": 14
+        }
+    }
+}
+```
+
+AI disclosure
+- wrote unit test with the help of chatgpt 
