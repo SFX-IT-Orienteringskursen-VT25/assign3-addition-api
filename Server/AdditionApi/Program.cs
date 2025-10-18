@@ -1,55 +1,33 @@
-using AdditionApi;
+
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// In-memory storage (simulates localStorage)
+Dictionary<string, string> localStorage = new();
+
+// POST /storage - simulate localStorage.setItem
+app.MapPost("/storage", ([FromBody] KeyValuePair<string, string> payload) =>
 {
-    app.MapOpenApi();
-}
-
-app.UseHttpsRedirection();
-
-
-
-app.MapGet("/", () =>
-{
-    return "Hello World!";
-});
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
-});
-
-app.MapPost("/order", ([FromBody] Order order) =>
-{
-    if (order.Item == null)
+    if (string.IsNullOrEmpty(payload.Key) || payload.Value == null)
     {
-        return Results.BadRequest("Must provide an item");
+        return Results.BadRequest("Both key and value are required.");
     }
 
-    return Results.Ok("Order received");
+    localStorage[payload.Key] = payload.Value;
+    return Results.Created($"/storage/{payload.Key}", new { message = "Stored successfully" });
 });
-app.MapPut("/order", ([FromBody] Order order) =>
+
+// GET /storage/{key} - simulate localStorage.getItem
+app.MapGet("/storage/{key}", ([FromRoute] string key) =>
 {
-    return Results.Ok("Order has been updated");
+    if (localStorage.TryGetValue(key, out var value))
+    {
+        return Results.Ok(new { value });
+    }
+
+    return Results.NotFound(new { error = "Key not found" });
 });
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
 app.Run();
