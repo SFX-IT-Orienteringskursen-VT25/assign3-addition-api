@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add and Summarize Numbers</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Add a Number and Summarize Them</h1>
+        <p>Enter a number below. The calculator will correctly summarize the numbers.</p>
+        <p><strong>Bonus improvement:</strong> Prevents adding invalid inputs.</p>
+
+        <label for="numberInput" class="visually-hidden">Enter an integer</label>
+        <input type="text" id="numberInput" placeholder="Enter an integer">
+        <button id="addButton">Add Number</button>
+
+        <div class="list">
+            <div id="numberList"></div>
+            =
+            <h3><span id="totalSum">0</span></h3>
+        </div>
+    </div>
+
+    <script>
+        const numberInput = document.getElementById('numberInput');
+        const addButton = document.getElementById('addButton');
+
+        async function updateNumbers(newNumber) {
+            // POST new number if provided
+            if (newNumber != null) {
+                await fetch('/api/numbers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify([newNumber]) // send as array
+                });
+            }
+
+            // GET current numbers and sum
+            const response = await fetch('/api/numbers');
+            if (!response.ok) {
+                document.getElementById('numberList').textContent = '';
+                document.getElementById('totalSum').textContent = '0';
+                return { stored: [], sum: 0 };
+            }
+
+            const data = await response.json();
+
+            // Format numbers for display: negatives get parentheses
+            const formatted = data.numbers.map(n => (n < 0 ? `(${n})` : n));
+
+            document.getElementById('numberList').textContent = formatted.join(' + ');
+            document.getElementById('totalSum').textContent = data.sum;
+
+            return data;
+
+        }
+
+
+        addButton.addEventListener('click', async function () {
+            const number = numberInput.value.trim();
+
+            // Check if input is a valid integer (no decimals, no empty input)
+            if (!/^-?\d+$/.test(number)) {
+                alert('Please enter a valid integer.');
+                return;
+            }
+
+            const numValue = parseInt(number, 10);
+            updateNumbers(numValue); // POST and GET from API
+
+            numberInput.value = '';
+            numberInput.focus();
+        });
+
+        // ---------- Initialize UI on Load ----------
+        document.addEventListener('DOMContentLoaded', async () => {
+            await updateNumbers(); // populate UI from persisted values
+        });
+    </script>
+
+</body>
+</html>

@@ -1,13 +1,17 @@
 using AdditionApi;
-using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+//builder.Services.AddControllers(); // For API later
 
 var app = builder.Build();
+
+// Use default files and static files (serves index.html automatically)
+app.UseDefaultFiles(); // looks for index.html by default
+app.UseStaticFiles();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -15,41 +19,50 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+// Optional: Use HTTPS redirection
 app.UseHttpsRedirection();
 
 
-
-app.MapGet("/", () =>
+// Map a default API route for testing
+app.MapGet("/api/hello", () =>
 {
     return "Hello World!";
 });
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
-});
+// -----------------API for localstorage.setItem and getItem-----------------
+// GET api / numbers->returns all numbers and sum
+// In-memory storage for numbers
+var numbersData = new Number();
 
-app.MapPost("/order", ([FromBody] Order order) =>
+// GET api/numbers -> returns all numbers and sum
+app.MapGet("/api/numbers", () =>
 {
-    if (order.Item == null)
+    if (!numbersData.Numbers.Any())
+        return Results.NotFound(new { message = "No numbers persisted." });
+
+    return Results.Ok(new
     {
-        return Results.BadRequest("Must provide an item");
-    }
-
-    return Results.Ok("Order received");
+        numbers = numbersData.Numbers,
+        sum = numbersData.Sum
+    });
 });
-app.MapPut("/order", ([FromBody] Order order) =>
+
+// POST api/numbers -> add new numbers
+app.MapPost("/api/numbers", (List<int> newNumbers) =>
 {
-    return Results.Ok("Order has been updated");
-});
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
+    if (newNumbers == null || !newNumbers.Any())
+        return Results.BadRequest(new { message = "No numbers provided." });
 
+    numbersData.Numbers.AddRange(newNumbers);
+
+    return Results.Created("/api/numbers", new
+    {
+        numbers = numbersData.Numbers,
+        sum = numbersData.Sum
+    });
+});
+
+
+// Run the app
 app.Run();
+
