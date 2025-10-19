@@ -1,11 +1,21 @@
-using AdditionApi;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+//Add Cors Policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost", policy =>
+    {
+        policy
+            .AllowAnyOrigin() 
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
@@ -17,39 +27,35 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+//Apply the Cors policy
+app.UseCors("AllowLocalhost");
 
+// --- In-memory list to store numbers ---
+List<int> numbers = [];
 
 app.MapGet("/", () =>
 {
     return "Hello World!";
 });
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/numbers", () =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
+    
+        return Results.Json(new { savedNumbers = numbers }, statusCode:200);
+
 });
 
-app.MapPost("/order", ([FromBody] Order order) =>
+app.MapPost("/numbers", (NumberInput req) =>
 {
-    if (order.Item == null)
+    numbers.Add(req.number);
+
+    return Results.Json(new
     {
-        return Results.BadRequest("Must provide an item");
-    }
+        savedNumbers = numbers
+    }, statusCode :200);
+});
 
-    return Results.Ok("Order received");
-});
-app.MapPut("/order", ([FromBody] Order order) =>
-{
-    return Results.Ok("Order has been updated");
-});
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
 app.Run();
+
+public record NumberInput(int number);
