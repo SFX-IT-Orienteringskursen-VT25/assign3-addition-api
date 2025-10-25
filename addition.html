@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add and Summarize Numbers</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Add a Number and Summarize Them</h1>
+        <p>Enter a number below. The calculator will correctly summarize the numbers.</p>
+        <p><strong>Bonus improvement:</strong> Prevents adding invalid inputs.</p>
+        
+        <input type="text" id="numberInput" placeholder="Enter an integer">
+        <button id="addButton">Add Number</button>
+        
+        <div class="list">
+            <div id="numberList"></div>
+            =
+            <h3><span id="totalSum">0</span></h3>
+        </div>
+    </div>
+
+    <script>
+        const numberInput = document.getElementById('numberInput');
+        const addButton = document.getElementById('addButton');
+        const numberList = document.getElementById('numberList');
+        const totalSum = document.getElementById('totalSum');
+
+        // Store numbers locally for UI display
+        let enteredNumbers = [];
+
+        // Update the UI
+        function updateUI() {
+            const total = enteredNumbers.reduce((a, b) => a + b, 0);
+            numberList.textContent = enteredNumbers.join(' + ');
+            totalSum.textContent = total;
+        }
+
+        // Load existing numbers from backend API
+        async function loadNumbers() {
+            try {
+                const response = await fetch('http://localhost:3000/numbers');
+                const data = await response.json();
+                enteredNumbers = data;
+                updateUI();
+            } catch (err) {
+                console.error('Failed to load numbers', err);
+            }
+        }
+
+        // Add a new number via API
+        async function addNumberAPI(numValue) {
+            try {
+                const response = await fetch('http://localhost:3000/numbers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ number: numValue })
+                });
+
+                if (!response.ok) {
+                    alert('Failed to add number');
+                    return;
+                }
+
+                enteredNumbers = await response.json(); // Update local array
+                updateUI();
+            } catch (err) {
+                console.error('Failed to add number', err);
+            }
+        }
+
+        // Button click handler
+        addButton.addEventListener('click', function () {
+            const number = numberInput.value.trim();
+
+            // Input validation
+            if (!/^-?\d+$/.test(number)) {
+                alert('Please enter a valid integer.');
+                return;
+            }
+
+            const numValue = parseInt(number, 10);
+
+            // Call API instead of localStorage
+            addNumberAPI(numValue);
+
+            numberInput.value = '';
+            numberInput.focus();
+        });
+
+        // Load numbers when the page loads
+        loadNumbers();
+    </script>
+</body>
+</html>
