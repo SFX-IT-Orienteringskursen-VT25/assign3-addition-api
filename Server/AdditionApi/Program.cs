@@ -49,19 +49,18 @@ app.UseHttpsRedirection();
 //     return Results.Ok("Item retrieved");
 // });
 var store = new ConcurrentDictionary<string, string?>();
-// GET /storage/{key} -> { "value": string|null }
-app.MapGet("/storage/{key}", ([FromRoute] string key) =>
+
+app.MapGet("/localStorage/getItem", ([FromRoute] string key) =>
 {
     return store.TryGetValue(key, out var value)
         ? Results.Ok(new { value })
         : Results.Ok(new { value = (string?)null });
 });
 
-// PUT /storage/{key} with body { "value": string|null } -> 204
-app.MapPut("/storage/{key}", async ([FromRoute] string key, HttpRequest request) =>
+
+app.MapPut("/localStorage/setItem", async ([FromRoute] string key, HttpRequest request) =>
 {
     var body = await request.ReadFromJsonAsync<SetItemRequest>();
-    if (body is null) return Results.BadRequest(new { error = "Body must be { \"value\": string|null }" });
 
     store[key] = body.Value;
     return Results.NoContent();
