@@ -1,4 +1,4 @@
-using AdditionApi;
+//using AdditionApi;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Concurrent;
 var builder = WebApplication.CreateBuilder(args);
@@ -15,55 +15,24 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
-
-
-// app.MapGet("/", () =>
-// {
-//     return "Hello World!";
-// });
-
-// app.MapGet("/weatherforecast", () =>
-// {
-//     var forecast = Enumerable.Range(1, 5).Select(index =>
-//             new WeatherForecast
-//             (
-//                 DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-//                 Random.Shared.Next(-20, 55),
-//                 WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-//             ))
-//         .ToArray();
-//     return forecast;
-// });
-
-
-
-// create two endpoints that are suitable for replacing localStorage. one for localStorage.setItem and another for localStorage.getItem
-// app.MapPost("/localStorage/setItem", ([FromBody] LocalStorageItem item) =>
-// {
-//     return Results.Ok("Item stored");
-// });
-// app.MapGet("/localStorage/getItem", ([FromQuery] LocalStorageItem item) =>
-// {
-//     return Results.Ok("Item retrieved");
-// });
 var store = new ConcurrentDictionary<string, string?>();
+//Create two endpoints that are suitable to replace localStorage in the previous assignment (persisted-addition) one for localStorage.setItem and another for localStorage.getItem
 
-app.MapGet("/localStorage/getItem", ([FromRoute] string key) =>
+app.MapGet("/localStorage/getItem/{key}", (string key) =>
 {
     return store.TryGetValue(key, out var value)
         ? Results.Ok(new { value })
         : Results.Ok(new { value = (string?)null });
 });
-
-
-app.MapPut("/localStorage/setItem", async ([FromRoute] string key, HttpRequest request) =>
+app.MapPut("/localStorage/setItem/{key}", async (string key ,[FromBody] SetItemRequest? body) =>
 {
-    var body = await request.ReadFromJsonAsync<SetItemRequest>();
-
+    //var body = await request.ReadFromJsonAsync<SetItemRequest>();
+    if (body is null) return Results.BadRequest("Body required");
     store[key] = body.Value;
     return Results.NoContent();
 });
+app.MapGet("/", () => "Hello World!");
 app.Run();
 public record SetItemRequest(string? Value);
