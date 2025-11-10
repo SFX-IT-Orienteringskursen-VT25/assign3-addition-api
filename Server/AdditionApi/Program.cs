@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add OpenAPI/Swagger if needed
+// Optional: Swagger/OpenAPI (remove if teacher doesn't want)
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -14,23 +14,23 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// 🧠 In-memory storage (simulates localStorage)
+// In-memory key-value store (simulates localStorage)
 Dictionary<string, string> localStorage = new();
 
-// 🟢 POST /storage → simulate localStorage.setItem(key, value)
+// POST /storage -> simulate localStorage.setItem(key, value)
 app.MapPost("/storage", ([FromBody] StorageItem payload) =>
 {
-    if (string.IsNullOrEmpty(payload.Key) || payload.Value is null)
+    if (payload is null || string.IsNullOrEmpty(payload.Key) || payload.Value is null)
     {
-        return Results.BadRequest("Both key and value are required.");
+        return Results.BadRequest(new { error = "Both 'key' and 'value' are required." });
     }
 
     localStorage[payload.Key] = payload.Value;
     return Results.Created($"/storage/{payload.Key}", new { message = "Stored successfully" });
 });
 
-// 🟢 GET /storage/{key} → simulate localStorage.getItem(key)
-app.MapGet("/storage/{key}", ([FromRoute] string key) =>
+// GET /storage/{key} -> simulate localStorage.getItem(key)
+app.MapGet("/storage/{key}", (string key) =>
 {
     if (localStorage.TryGetValue(key, out var value))
     {
@@ -42,5 +42,5 @@ app.MapGet("/storage/{key}", ([FromRoute] string key) =>
 
 app.Run();
 
-// 🧩 Simple record to hold key-value pairs
+// Request/response model
 public record StorageItem(string Key, string Value);
