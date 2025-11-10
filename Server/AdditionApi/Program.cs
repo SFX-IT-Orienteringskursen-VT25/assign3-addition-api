@@ -1,4 +1,3 @@
-using AdditionApi;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,6 +5,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// In-memory storage to simulate localStorage
+var storage = new Dictionary<string, string>();
+builder.Services.AddSingleton(storage);
 
 var app = builder.Build();
 
@@ -17,39 +20,32 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
-
-app.MapGet("/", () =>
+// GET /storage/{key} - Retrieves a value by key (localStorage.getItem)
+// Returns 200 OK with the value, or 404 Not Found if key doesn't exist
+app.MapGet("/storage/{key}", (string key, Dictionary<string, string> storage) =>
 {
-    return "Hello World!";
-});
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
-});
-
-app.MapPost("/order", ([FromBody] Order order) =>
-{
-    if (order.Item == null)
+    if (storage.TryGetValue(key, out var value))
     {
-        return Results.BadRequest("Must provide an item");
+        return Results.Ok(new { key, value });
     }
+    return Results.NotFound(new { message = $"Key '{key}' not found" });
+});
 
-    return Results.Ok("Order received");
-});
-app.MapPut("/order", ([FromBody] Order order) =>
+// PUT /storage/{key} - Stores or updates a value by key (localStorage.setItem)
+// Returns 200 OK if updated, or 201 Created if new key was created
+app.MapPut("/storage/{key}", (string key, [FromBody] StorageValue storageValue, Dictionary<string, string> storage) =>
 {
-    return Results.Ok("Order has been updated");
+    bool isNewKey = !storage.ContainsKey(key);
+    storage[key] = storageValue.Value;
+
+    if (isNewKey)
+    {
+        return Results.Created($"/storage/{key}", new { key, value = storageValue.Value });
+    }
+    return Results.Ok(new { key, value = storageValue.Value });
 });
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
 app.Run();
+
+// Model for the storage value payload
+record StorageValue(string Value);
