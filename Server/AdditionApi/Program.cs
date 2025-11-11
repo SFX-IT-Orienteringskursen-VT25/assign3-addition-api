@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Create a dictionary to store our data (replaces localStorage)
+var storage = new Dictionary<string, string>();
+
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -17,39 +20,30 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
-
-app.MapGet("/", () =>
+// POST endpoint to save data (insted of localStorage.setItem)
+app.MapPost("/api/storage", ([FromBody] StorageItem item) =>
 {
-    return "Hello World!";
-});
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
-});
-
-app.MapPost("/order", ([FromBody] Order order) =>
-{
-    if (order.Item == null)
+    if (string.IsNullOrEmpty(item.Key))
     {
-        return Results.BadRequest("Must provide an item");
+        return Results.BadRequest("Key cannot be empty");
     }
 
-    return Results.Ok("Order received");
+    storage[item.Key] = item.Value;
+    return Results.Ok(new { key = item.Key, value = item.Value });
 });
-app.MapPut("/order", ([FromBody] Order order) =>
+
+// GET endpoint to retrieve data (insted of localStorage.getItem)
+app.MapGet("/api/storage/{key}", (string key) =>
 {
-    return Results.Ok("Order has been updated");
+    if (storage.ContainsKey(key))
+    {
+        return Results.Ok(new { key = key, value = storage[key] });
+    }
+
+    return Results.NotFound(new { message = $"Key '{key}' not found" });
 });
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
 app.Run();
+
+// Data model for storage requests
+record StorageItem(string Key, string Value);
