@@ -4,6 +4,7 @@
   "description": "The assignment was introduced in Class #7. In the link you can find the slides from the presentation as well as a recording of the class.\r https://classroom.google.com/c/MjI5OTg3MzMwODFa/p/MjE1MTI3MzM0MzNa/details",
   "main": "index.js",
   "scripts": {
+    "start": "node src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

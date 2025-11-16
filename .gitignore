@@ -1,2 +1,5 @@
 node_modules
-data/*.json
+Server/data/*.json
+bin/
+obj/
+
