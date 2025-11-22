@@ -21,35 +21,32 @@ app.UseHttpsRedirection();
 
 app.MapGet("/", () =>
 {
-    return "Hello World!";
+    return "Addition API";
 });
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
-});
+var data = new Dictionary<string, string>();
 
-app.MapPost("/order", ([FromBody] Order order) =>
+app.MapGet("/api/addition/{key}",([FromRoute] string key) =>
 {
-    if (order.Item == null)
+    if (data.ContainsKey(key))
     {
-        return Results.BadRequest("Must provide an item");
+        return Results.Ok(key);
     }
 
-    return Results.Ok("Order received");
+    return Results.NotFound(StatusCodes.Status404NotFound);
 });
-app.MapPut("/order", ([FromBody] Order order) =>
+
+app.MapPost("/api/addition", ([FromBody] StorageData storageData) =>
 {
-    return Results.Ok("Order has been updated");
+    if (data.ContainsKey(storageData.Key))
+    {
+        return Results.BadRequest(StatusCodes.Status400BadRequest);
+    }
+    
+    data.TryAdd(key: storageData.Key , value: storageData.Value);
+
+    return Results.Created($"/addition/{storageData.Key}", storageData.Value);
 });
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
+
 
 app.Run();
