@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../../Desktop/assignment"
+		},
+		{
+			"path": "../../../../simple-test"
+		},
+		{
+			"path": "../../../../sfx-o-assign2-persisted-addition"
+		},
+		{
+			"path": "../../../../../../Desktop/number"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "sfx-o-assign2-persisted-addition"
+	}
+}
