@@ -1,4 +1,3 @@
-using AdditionApi;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,39 +16,41 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+var storage = new Dictionary<string, string>();
 
 
-app.MapGet("/", () =>
+app.MapPost("/storage", ([FromBody] StorageItem item) =>
 {
-    return "Hello World!";
-});
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
-});
-
-app.MapPost("/order", ([FromBody] Order order) =>
-{
-    if (order.Item == null)
+    if (string.IsNullOrEmpty(item.Key))
     {
-        return Results.BadRequest("Must provide an item");
+        return Results.BadRequest("Key is required");
     }
 
-    return Results.Ok("Order received");
+    storage[item.Key] = item.Value;
+
+    return Results.Created($"/storage/{item.Key}", item);
 });
-app.MapPut("/order", ([FromBody] Order order) =>
+
+app.MapGet("/storage/{key}", (string key) =>
 {
-    return Results.Ok("Order has been updated");
+    if (!storage.ContainsKey(key))
+    {
+        return Results.NotFound();
+    }
+
+    return Results.Ok(new StorageItem
+    {
+        Key = key,
+        Value = storage[key]
+    });
 });
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
 app.Run();
+
+public class StorageItem
+{
+    public string Key { get; set; }
+    public string Value { get; set; }
+}
+
+

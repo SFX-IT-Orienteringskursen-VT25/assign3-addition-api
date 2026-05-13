@@ -1,6 +1,16 @@
 @AdditionApi_HostAddress = http://localhost:5262
 
-GET {{AdditionApi_HostAddress}}/weatherforecast/
-Accept: application/json
+###### Post data ###
+POST {{AdditionApi_HostAddress}}/storage
+Content-Type: application/json
+
+{
+  "key": "result",
+  "value": "42"
+}
 
 ###
+
+### Get data
+GET {{AdditionApi_HostAddress}}/storage/result
+Accept: application/json
