@@ -1,10 +1,8 @@
-using AdditionApi;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -17,39 +15,43 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// In-memory data store (simulates localStorage)
+var dataStore = new Dictionary<string, string>();
 
-
-app.MapGet("/", () =>
+// POST /data - Equivalent to localStorage.setItem(key, value)
+app.MapPost("/data", ([FromBody] Dictionary<string, string> request) =>
 {
-    return "Hello World!";
-});
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
-});
-
-app.MapPost("/order", ([FromBody] Order order) =>
-{
-    if (order.Item == null)
+    if (request == null || !request.ContainsKey("key") || !request.ContainsKey("value"))
     {
-        return Results.BadRequest("Must provide an item");
+        return Results.BadRequest(new { error = "Must provide 'key' and 'value'" });
     }
 
-    return Results.Ok("Order received");
+    string key = request["key"];
+    string value = request["value"];
+
+    if (string.IsNullOrWhiteSpace(key))
+    {
+        return Results.BadRequest(new { error = "Key cannot be empty" });
+    }
+
+    dataStore[key] = value;
+    return Results.Ok(new { key, value });
 });
-app.MapPut("/order", ([FromBody] Order order) =>
+
+// GET /data/{key} - Equivalent to localStorage.getItem(key)
+app.MapGet("/data/{key}", (string key) =>
 {
-    return Results.Ok("Order has been updated");
+    if (string.IsNullOrWhiteSpace(key))
+    {
+        return Results.BadRequest(new { error = "Key cannot be empty" });
+    }
+
+    if (dataStore.TryGetValue(key, out var value))
+    {
+        return Results.Ok(new { key, value });
+    }
+
+    return Results.NotFound(new { error = $"Data for key '{key}' not found" });
 });
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
 app.Run();
