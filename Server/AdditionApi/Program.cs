@@ -18,38 +18,49 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 
+// In-memory storage
+var storage = new Dictionary<string, string>();
 
-app.MapGet("/", () =>
-{
-    return "Hello World!";
-});
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
-});
+// GET endpoint
+// Equivalent to localStorage.getItem(key)
 
-app.MapPost("/order", ([FromBody] Order order) =>
+app.MapGet("/storage/{key}", ([FromRoute] string key) =>
 {
-    if (order.Item == null)
+    if (!storage.ContainsKey(key))
     {
-        return Results.BadRequest("Must provide an item");
+        return Results.NotFound(new
+        {
+            error = "Key not found"
+        });
     }
 
-    return Results.Ok("Order received");
+    return Results.Ok(new
+    {
+        key = key,
+        value = storage[key]
+    });
 });
-app.MapPut("/order", ([FromBody] Order order) =>
+
+
+// POST endpoint
+// Equivalent to localStorage.setItem(key, value)
+
+app.MapPost("/storage/{key}", (
+    [FromRoute] string key,
+    [FromBody] StorageRecord record) =>
 {
-    return Results.Ok("Order has been updated");
+    storage[key] = record.Value;
+
+    return Results.Ok(new
+    {
+        message = "Data stored successfully",
+        key = key,
+        value = record.Value
+    });
 });
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
 app.Run();
+
+
+// Request body model;
