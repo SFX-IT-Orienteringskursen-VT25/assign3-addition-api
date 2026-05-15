@@ -1,15 +1,11 @@
-using AdditionApi;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -17,39 +13,21 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+var storage = new Dictionary<string, string>();
 
-
-app.MapGet("/", () =>
+app.MapPut("/storage/{key}", (string key, [FromBody] StorageValue body) =>
 {
-    return "Hello World!";
+    storage[key] = body.Value;
+    return Results.NoContent();
 });
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/storage/{key}", (string key) =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
+    if (!storage.TryGetValue(key, out var value))
+        return Results.NotFound();
+    return Results.Ok(new StorageValue(value));
 });
-
-app.MapPost("/order", ([FromBody] Order order) =>
-{
-    if (order.Item == null)
-    {
-        return Results.BadRequest("Must provide an item");
-    }
-
-    return Results.Ok("Order received");
-});
-app.MapPut("/order", ([FromBody] Order order) =>
-{
-    return Results.Ok("Order has been updated");
-});
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
 app.Run();
+
+record StorageValue(string Value);
