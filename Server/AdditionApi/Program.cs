@@ -2,23 +2,16 @@ using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddOpenApi();
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+
 
 app.UseHttpsRedirection();
 
-// In-memory data store (simulates localStorage)
+//store data
 var dataStore = new Dictionary<string, string>();
 
-// POST /data - Equivalent to localStorage.setItem(key, value)
+//Equivalent to localStorage.setItem(key, value)
 app.MapPost("/data", ([FromBody] Dictionary<string, string> request) =>
 {
     if (request == null || !request.ContainsKey("key") || !request.ContainsKey("value"))
@@ -38,7 +31,7 @@ app.MapPost("/data", ([FromBody] Dictionary<string, string> request) =>
     return Results.Ok(new { key, value });
 });
 
-// GET /data/{key} - Equivalent to localStorage.getItem(key)
+// Equivalent to localStorage.getItem(key)
 app.MapGet("/data/{key}", (string key) =>
 {
     if (string.IsNullOrWhiteSpace(key))

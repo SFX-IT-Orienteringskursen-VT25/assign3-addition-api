@@ -1,4 +1,4 @@
-@AdditionApi_HostAddress = https://localhost:5001
+@AdditionApi_HostAddress = http://localhost:5262
 
 ### Save data (like localStorage.setItem)
 POST {{AdditionApi_HostAddress}}/data
@@ -6,7 +6,7 @@ Content-Type: application/json
 
 {
   "key": "addition_result",
-  "value": "42"
+  "value": "45"
 }
 
 ###
