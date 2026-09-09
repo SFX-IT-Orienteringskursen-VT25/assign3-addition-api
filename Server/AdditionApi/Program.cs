@@ -1,15 +1,17 @@
+
 using AdditionApi;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -17,39 +19,37 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
-
-app.MapGet("/", () =>
+app.MapPost("/storage", async (StorageItem item, AppDbContext db) =>
 {
-    return "Hello World!";
-});
+    var existingItem = await db.StorageItems
+        .FirstOrDefaultAsync(x => x.Key == item.Key);
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
-});
-
-app.MapPost("/order", ([FromBody] Order order) =>
-{
-    if (order.Item == null)
+    if (existingItem != null)
     {
-        return Results.BadRequest("Must provide an item");
+        existingItem.Value = item.Value;
+    }
+    else
+    {
+        db.StorageItems.Add(item);
     }
 
-    return Results.Ok("Order received");
+    await db.SaveChangesAsync();
+
+    return Results.Ok(item);
 });
-app.MapPut("/order", ([FromBody] Order order) =>
+
+app.MapGet("/storage/{key}", async (string key, AppDbContext db) =>
 {
-    return Results.Ok("Order has been updated");
+    var item = await db.StorageItems
+        .FirstOrDefaultAsync(x => x.Key == key);
+
+    if (item == null)
+    {
+        return Results.NotFound();
+    }
+
+    return Results.Ok(item);
 });
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
 app.Run();
+
