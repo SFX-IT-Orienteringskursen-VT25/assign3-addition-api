@@ -1,4 +1,4 @@
-using AdditionApi;
+using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,39 +17,27 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Works like the browser's localStorage: key -> string value
+var storage = new ConcurrentDictionary<string, string>();
 
-
-app.MapGet("/", () =>
+// Replaces localStorage.setItem(key, value)
+// PUT because it creates or overwrites the value for the key (idempotent).
+// 204 No Content because setItem returns nothing.
+app.MapPut("/storage/{key}", (string key, [FromBody] string value) =>
 {
-    return "Hello World!";
+    storage[key] = value;
+    return Results.NoContent();
 });
 
-app.MapGet("/weatherforecast", () =>
+// Replaces localStorage.getItem(key)
+// GET because it only reads.
+// 200 OK with the value, or 404 Not Found when the key does not exist
+// (localStorage.getItem returns null in that case).
+app.MapGet("/storage/{key}", (string key) =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
+    return storage.TryGetValue(key, out var value)
+        ? Results.Ok(value)
+        : Results.NotFound();
 });
-
-app.MapPost("/order", ([FromBody] Order order) =>
-{
-    if (order.Item == null)
-    {
-        return Results.BadRequest("Must provide an item");
-    }
-
-    return Results.Ok("Order received");
-});
-app.MapPut("/order", ([FromBody] Order order) =>
-{
-    return Results.Ok("Order has been updated");
-});
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
 app.Run();
