@@ -1,4 +1,3 @@
-using AdditionApi;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,39 +16,18 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
-
-app.MapGet("/", () =>
+app.MapGet("/api/numbers", () =>
 {
-    return "Hello World!";
+    int[] numbers = { 5, 10, 3 };
+
+    return Results.Ok(numbers);
 });
 
-app.MapGet("/weatherforecast", () =>
+app.MapPut("/api/numbers", (int[] numbers) =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-            new WeatherForecast
-            (
-                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                Random.Shared.Next(-20, 55),
-                WeatherForecastStatus.Summaries[Random.Shared.Next(WeatherForecastStatus.Summaries.Length)]
-            ))
-        .ToArray();
-    return forecast;
-});
+    Console.WriteLine($"Received numbers: {string.Join(", ", numbers)}");
 
-app.MapPost("/order", ([FromBody] Order order) =>
-{
-    if (order.Item == null)
-    {
-        return Results.BadRequest("Must provide an item");
-    }
-
-    return Results.Ok("Order received");
+    return Results.NoContent();
 });
-app.MapPut("/order", ([FromBody] Order order) =>
-{
-    return Results.Ok("Order has been updated");
-});
-app.MapDelete("/order", ([FromBody] Order order) => Results.NoContent());
 
 app.Run();
