@@ -1,6 +1,15 @@
 @AdditionApi_HostAddress = http://localhost:5262
 
-GET {{AdditionApi_HostAddress}}/weatherforecast/
+PUT {{AdditionApi_HostAddress}}/api/storage/last-result
+Content-Type: application/json
+
+{
+  "value": "42"
+}
+
+###
+
+GET {{AdditionApi_HostAddress}}/api/storage/last-result
 Accept: application/json
 
 ###
