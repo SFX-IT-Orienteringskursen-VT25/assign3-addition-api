@@ -15,6 +15,7 @@ Requirements:
     - which HTTP Method you should use
     - which HTTP response code you should use
     - should the endpoint return any data or object?
+  - the values do not need to be persisted anywhere (no file or database). That comes in assignment 4 (adding-database)
 - Remove all other endpoints and unused classes in the project
 
 Commit
